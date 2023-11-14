@@ -29,11 +29,10 @@ class MainViewModel(private val repository: StoryRepository) : ViewModel() {
                 if (!response.error) {
                     _listStory.value = response.listStory
                 } else {
-
-                    Log.e("StoryViewModel", "Error fetching stories: ${response.message}")
+                    Log.e("StoryViewModel", "Error load stories: ${response.message}")
                 }
             } catch (e: Exception) {
-                Log.e("StoryViewModel", "Error fetching stories: ${e.message}")
+                Log.e("StoryViewModel", "Error load stories: ${e.message}")
             } finally {
                 _loading.value = false
             }

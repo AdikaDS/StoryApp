@@ -4,17 +4,22 @@ import android.animation.AnimatorSet
 import android.animation.ObjectAnimator
 import android.content.Intent
 import android.os.Build
-import androidx.appcompat.app.AppCompatActivity
 import android.os.Bundle
 import android.view.View
 import android.view.WindowInsets
 import android.view.WindowManager
-import com.adika.storyapp.R
+import androidx.activity.viewModels
+import androidx.appcompat.app.AppCompatActivity
 import com.adika.storyapp.databinding.ActivityWelcomeBinding
+import com.adika.storyapp.view.UserModelFactory
 import com.adika.storyapp.view.login.LoginActivity
+import com.adika.storyapp.view.main.MainActivity
 import com.adika.storyapp.view.signup.SignupActivity
 
 class WelcomeActivity : AppCompatActivity() {
+    val viewModel by viewModels<WelcomeViewModel> {
+        UserModelFactory.getInstance(this)
+    }
     private lateinit var binding: ActivityWelcomeBinding
 
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -25,6 +30,9 @@ class WelcomeActivity : AppCompatActivity() {
         setupView()
         setupAction()
         playAnimation()
+        checkLogin()
+
+
     }
 
     private fun setupView() {
@@ -38,6 +46,17 @@ class WelcomeActivity : AppCompatActivity() {
             )
         }
         supportActionBar?.hide()
+    }
+
+    private fun checkLogin() {
+        viewModel.getSession().observe(this) { session ->
+            if (session.isLogin) {
+                val intent = Intent(this, MainActivity::class.java)
+                intent.flags = Intent.FLAG_ACTIVITY_CLEAR_TOP or Intent.FLAG_ACTIVITY_NEW_TASK
+                startActivity(intent)
+                finish()
+            }
+        }
     }
 
     private fun setupAction() {

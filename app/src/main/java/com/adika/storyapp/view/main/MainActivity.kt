@@ -1,13 +1,10 @@
 package com.adika.storyapp.view.main
 
 import android.content.Intent
-import android.os.Build
 import android.os.Bundle
 import android.view.Menu
 import android.view.MenuItem
 import android.view.View
-import android.view.WindowInsets
-import android.view.WindowManager
 import androidx.activity.viewModels
 import androidx.appcompat.app.AppCompatActivity
 import androidx.lifecycle.lifecycleScope
@@ -34,6 +31,7 @@ class MainActivity : AppCompatActivity() {
         binding = ActivityMainBinding.inflate(layoutInflater)
         setContentView(binding.root)
 
+        setSupportActionBar(binding.toolbar)
         storyAdapter = StoryAdapter(emptyList())
         showRecyclerList()
         playAnimation()
@@ -48,20 +46,6 @@ class MainActivity : AppCompatActivity() {
 
         viewModel.getStory()
     }
-
-    private fun setupView() {
-        @Suppress("DEPRECATION")
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R) {
-            window.insetsController?.hide(WindowInsets.Type.statusBars())
-        } else {
-            window.setFlags(
-                WindowManager.LayoutParams.FLAG_FULLSCREEN,
-                WindowManager.LayoutParams.FLAG_FULLSCREEN
-            )
-        }
-        supportActionBar?.hide()
-    }
-
 
     private fun playAnimation() {
 //        ObjectAnimator.ofFloat(binding.imageView, View.TRANSLATION_X, -30f, 30f).apply {
@@ -87,18 +71,6 @@ class MainActivity : AppCompatActivity() {
         val itemDecoration = DividerItemDecoration(this, layoutManager.orientation)
         binding.rvStory.addItemDecoration(itemDecoration)
     }
-
-//    private fun setStoryData(list: List<ListStoryItem>) {
-//        val listStory = ArrayList<ListStoryItem>()
-//        for (story in list) {
-//            listStory.clear()
-//            listStory.addAll(list)
-//        }
-//
-//        val adapter = StoryAdapter(listStory)
-//        binding?.rvStory?.adapter = adapter
-//
-//    }
 
     override fun onCreateOptionsMenu(menu: Menu?): Boolean {
         menuInflater.inflate(R.menu.toolbar_menu, menu)

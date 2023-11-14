@@ -26,7 +26,7 @@ class LoginViewModel (private val repository: UserRepository) : ViewModel() {
                 val loginResponse = repository.login(email, password)
                 status.postValue(true)
                 val token = loginResponse.loginResult.token
-                repository.saveSession(UserModel(email, token ?: "", true))
+                repository.saveSession(UserModel(email, token, true))
                 Log.d("LOGIN", "$loginResponse")
             } catch (e: HttpException) {
                 _loading.value = false

@@ -9,13 +9,16 @@
     <string name="password">Password</string>
     <string name="message_login_page">Masukkan dulu datamu ya</string>
     <string name="title_login_page">Sudah siap untuk membagikan story Anda ke teman-teman?</string>
-    <string name="name">Nama</string>
     <string name="message_main_page">Selamat Membuat Story Anda di Aplikasi Dicoding Story.</string>
     <string name="greeting">Halo %1$s,</string>
     <string name="logout">Keluar</string>
     <string name="next_btn">Selanjutnya</string>
 
+    <string name="picture_story">Gambar Story</string>
+    <string name="name">Nama</string>
     <string name="detail_story">Detail Story</string>
+    <string name="created_on">Dibuat Pada :\u00A0</string>
+    <string name="date">Tanggal</string>
 
     <string name="email_warning_invalid">Email yang dimasukkan salah</string>
     <string name="email_warning_empty">Tolong masukkan email kamu</string>

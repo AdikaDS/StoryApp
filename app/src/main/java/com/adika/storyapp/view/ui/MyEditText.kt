@@ -5,10 +5,7 @@ import android.graphics.Canvas
 import android.text.Editable
 import android.text.TextWatcher
 import android.util.AttributeSet
-import android.view.View
 import androidx.appcompat.widget.AppCompatEditText
-import androidx.core.content.res.ResourcesCompat
-import com.adika.storyapp.R
 
 class MyEditText : AppCompatEditText {
     constructor(context: Context) : super(context) {
@@ -29,9 +26,6 @@ class MyEditText : AppCompatEditText {
 
     override fun onDraw(canvas: Canvas) {
         super.onDraw(canvas)
-        textAlignment = View.TEXT_ALIGNMENT_VIEW_START
-        background = ResourcesCompat.getDrawable(resources, R.drawable.bg_text_field, null)
-        isSingleLine = true
     }
 
     private fun init() {
