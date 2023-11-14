@@ -4,21 +4,25 @@ import android.animation.AnimatorSet
 import android.animation.ObjectAnimator
 import android.content.Intent
 import android.os.Build
-import androidx.appcompat.app.AppCompatActivity
 import android.os.Bundle
+import android.text.Editable
+import android.text.TextWatcher
+import android.util.Patterns
 import android.view.View
 import android.view.WindowInsets
 import android.view.WindowManager
+import android.widget.Toast
 import androidx.activity.viewModels
 import androidx.appcompat.app.AlertDialog
-import com.adika.storyapp.data.local.pref.UserModel
+import androidx.appcompat.app.AppCompatActivity
+import com.adika.storyapp.R
 import com.adika.storyapp.databinding.ActivityLoginBinding
-import com.adika.storyapp.view.ViewModelFactory
+import com.adika.storyapp.view.UserModelFactory
 import com.adika.storyapp.view.main.MainActivity
 
 class LoginActivity : AppCompatActivity() {
     private val viewModel by viewModels<LoginViewModel> {
-        ViewModelFactory.getInstance(this)
+        UserModelFactory.getInstance(this)
     }
     private lateinit var binding: ActivityLoginBinding
 
@@ -30,8 +34,9 @@ class LoginActivity : AppCompatActivity() {
         setContentView(binding.root)
 
         setupView()
-        setupAction()
         playAnimation()
+        checkEditText()
+        login()
     }
 
     private fun setupView() {
@@ -47,23 +52,38 @@ class LoginActivity : AppCompatActivity() {
         supportActionBar?.hide()
     }
 
-    private fun setupAction() {
+    private fun login() {
         binding.loginButton.setOnClickListener {
             val email = binding.emailEditText.text.toString()
-            viewModel.saveSession(UserModel(email, "sample_token"))
-            AlertDialog.Builder(this).apply {
-                setTitle("Yeah!")
-                setMessage("Anda berhasil login. Sudah tidak sabar untuk buat story ya?")
-                setPositiveButton("Lanjut") { _, _ ->
-                    val intent = Intent(context, MainActivity::class.java)
-                    intent.flags = Intent.FLAG_ACTIVITY_CLEAR_TASK or Intent.FLAG_ACTIVITY_NEW_TASK
-                    startActivity(intent)
-                    finish()
+            val password = binding.passwordEditText.text.toString()
+
+            viewModel.login(email, password)
+        }
+        viewModel.status.observe(this) { isSuccess ->
+            if (isSuccess) {
+                AlertDialog.Builder(this).apply {
+                    setTitle("Yeah!")
+                    setMessage("Anda berhasil login. Sudah tidak sabar untuk buat story ya?")
+                    setPositiveButton("Lanjut") { _, _ ->
+                        val intent = Intent(context, MainActivity::class.java)
+                        startActivity(intent)
+                        finish()
+                    }
+                    create()
+                    show()
                 }
-                create()
-                show()
+            } else {
+                viewModel.error.observe(this) { errorMessage ->
+                    if (errorMessage != null) {
+                        Toast.makeText(this, "$errorMessage", Toast.LENGTH_SHORT).show()
+                    }
+                }
             }
         }
+        viewModel.loading.observe(this) { loading ->
+            showLoading(loading)
+        }
+
     }
 
     private fun playAnimation() {
@@ -98,5 +118,61 @@ class LoginActivity : AppCompatActivity() {
             )
             startDelay = 100
         }.start()
+    }
+
+    private fun checkEditText() {
+        binding.emailEditText.addTextChangedListener(object : TextWatcher {
+            override fun beforeTextChanged(s: CharSequence?, p1: Int, p2: Int, p3: Int) {
+
+            }
+
+            override fun onTextChanged(s: CharSequence?, p1: Int, p2: Int, p3: Int) {
+                val errorMessage = when {
+                    s.isNullOrEmpty() -> resources.getString(R.string.email_warning_empty)
+                    !Patterns.EMAIL_ADDRESS.matcher(s)
+                        .matches() -> resources.getString(R.string.email_warning_invalid)
+
+                    else -> null
+                }
+
+                if (errorMessage != null) {
+                    binding.emailEditTextLayout.error = errorMessage
+                } else {
+                    binding.emailEditTextLayout.error = null
+                }
+            }
+
+            override fun afterTextChanged(s: Editable?) {
+
+            }
+        })
+
+        binding.passwordEditText.addTextChangedListener(object : TextWatcher {
+            override fun beforeTextChanged(s: CharSequence?, p1: Int, p2: Int, p3: Int) {
+
+            }
+
+            override fun onTextChanged(s: CharSequence?, p1: Int, p2: Int, p3: Int) {
+                val errorMessage = when {
+                    s.isNullOrEmpty() -> resources.getString(R.string.password_warning_empty)
+                    s.length < 8 -> resources.getString(R.string.password_warning_length)
+                    else -> null
+                }
+
+                if (errorMessage != null) {
+                    binding.passwordEditTextLayout.error = errorMessage
+                } else {
+                    binding.passwordEditTextLayout.error = null
+                }
+            }
+
+            override fun afterTextChanged(s: Editable?) {
+
+            }
+        })
+    }
+
+    private fun showLoading(isLoading: Boolean) {
+        binding.progressBar.visibility = if (isLoading) View.VISIBLE else View.GONE
     }
 }

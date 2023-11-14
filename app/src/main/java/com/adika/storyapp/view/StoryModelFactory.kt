@@ -3,12 +3,13 @@ package com.adika.storyapp.view
 import android.content.Context
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.ViewModelProvider
-import com.adika.storyapp.data.local.UserRepository
+import com.adika.storyapp.data.local.repo.StoryRepository
 import com.adika.storyapp.di.Injection
-import com.adika.storyapp.view.login.LoginViewModel
+import com.adika.storyapp.view.detail.DetailViewModel
 import com.adika.storyapp.view.main.MainViewModel
 
-class ViewModelFactory(private val repository: UserRepository) : ViewModelProvider.NewInstanceFactory() {
+class StoryModelFactory(private val repository: StoryRepository) :
+    ViewModelProvider.NewInstanceFactory() {
 
     @Suppress("UNCHECKED_CAST")
     override fun <T : ViewModel> create(modelClass: Class<T>): T {
@@ -16,24 +17,27 @@ class ViewModelFactory(private val repository: UserRepository) : ViewModelProvid
             modelClass.isAssignableFrom(MainViewModel::class.java) -> {
                 MainViewModel(repository) as T
             }
-            modelClass.isAssignableFrom(LoginViewModel::class.java) -> {
-                LoginViewModel(repository) as T
+
+            modelClass.isAssignableFrom(DetailViewModel::class.java) -> {
+                DetailViewModel(repository) as T
             }
+
             else -> throw IllegalArgumentException("Unknown ViewModel class: " + modelClass.name)
         }
     }
 
     companion object {
         @Volatile
-        private var INSTANCE: ViewModelFactory? = null
+        private var INSTANCE: StoryModelFactory? = null
+
         @JvmStatic
-        fun getInstance(context: Context): ViewModelFactory {
+        fun getInstance(context: Context): StoryModelFactory {
             if (INSTANCE == null) {
-                synchronized(ViewModelFactory::class.java) {
-                    INSTANCE = ViewModelFactory(Injection.provideRepository(context))
+                synchronized(StoryModelFactory::class.java) {
+                    INSTANCE = StoryModelFactory(Injection.provideStoryRepository(context))
                 }
             }
-            return INSTANCE as ViewModelFactory
+            return INSTANCE as StoryModelFactory
         }
     }
 }
