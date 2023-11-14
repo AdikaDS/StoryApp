@@ -5,6 +5,7 @@ import android.view.View
 import android.widget.Toast
 import androidx.activity.viewModels
 import androidx.appcompat.app.AppCompatActivity
+import androidx.core.view.ViewCompat
 import com.adika.storyapp.databinding.ActivityDetailStoryBinding
 import com.adika.storyapp.utils.withDateFormat
 import com.adika.storyapp.view.StoryModelFactory
@@ -25,6 +26,15 @@ class DetailStoryActivity : AppCompatActivity() {
             showLoading(loading)
         }
 
+        transitionActivity()
+
+    }
+
+    private fun transitionActivity() {
+        val transitionName = intent.getStringExtra(EXTRA_TRANSITION_NAME)
+        ViewCompat.setTransitionName(binding.imageDetailStory, transitionName)
+        ViewCompat.setTransitionName(binding.tvName, transitionName)
+        ViewCompat.setTransitionName(binding.tvDetail, transitionName)
     }
 
     private fun getDetailStory() {
@@ -62,6 +72,7 @@ class DetailStoryActivity : AppCompatActivity() {
 
 
     companion object {
-        const val EXTRA_ID = "extra_userid"
+        const val EXTRA_ID = "extra_user_id"
+        const val EXTRA_TRANSITION_NAME = "extra_transition_name"
     }
 }
