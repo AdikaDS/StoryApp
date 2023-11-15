@@ -5,9 +5,6 @@ import android.animation.ObjectAnimator
 import android.content.Intent
 import android.os.Build
 import android.os.Bundle
-import android.text.Editable
-import android.text.TextWatcher
-import android.util.Patterns
 import android.view.View
 import android.view.WindowInsets
 import android.view.WindowManager
@@ -15,7 +12,6 @@ import android.widget.Toast
 import androidx.activity.viewModels
 import androidx.appcompat.app.AlertDialog
 import androidx.appcompat.app.AppCompatActivity
-import com.adika.storyapp.R
 import com.adika.storyapp.databinding.ActivityLoginBinding
 import com.adika.storyapp.view.UserModelFactory
 import com.adika.storyapp.view.main.MainActivity
@@ -35,7 +31,6 @@ class LoginActivity : AppCompatActivity() {
 
         setupView()
         playAnimation()
-        checkEditText()
         login()
     }
 
@@ -120,57 +115,6 @@ class LoginActivity : AppCompatActivity() {
         }.start()
     }
 
-    private fun checkEditText() {
-        binding.emailEditText.addTextChangedListener(object : TextWatcher {
-            override fun beforeTextChanged(s: CharSequence?, p1: Int, p2: Int, p3: Int) {
-
-            }
-
-            override fun onTextChanged(s: CharSequence?, p1: Int, p2: Int, p3: Int) {
-                val errorMessage = when {
-                    s.isNullOrEmpty() -> resources.getString(R.string.email_warning_empty)
-                    !Patterns.EMAIL_ADDRESS.matcher(s)
-                        .matches() -> resources.getString(R.string.email_warning_invalid)
-
-                    else -> null
-                }
-
-                if (errorMessage != null) {
-                    binding.emailEditTextLayout.error = errorMessage
-                } else {
-                    binding.emailEditTextLayout.error = null
-                }
-            }
-
-            override fun afterTextChanged(s: Editable?) {
-
-            }
-        })
-
-        binding.passwordEditText.addTextChangedListener(object : TextWatcher {
-            override fun beforeTextChanged(s: CharSequence?, p1: Int, p2: Int, p3: Int) {
-
-            }
-
-            override fun onTextChanged(s: CharSequence?, p1: Int, p2: Int, p3: Int) {
-                val errorMessage = when {
-                    s.isNullOrEmpty() -> resources.getString(R.string.password_warning_empty)
-                    s.length < 8 -> resources.getString(R.string.password_warning_length)
-                    else -> null
-                }
-
-                if (errorMessage != null) {
-                    binding.passwordEditTextLayout.error = errorMessage
-                } else {
-                    binding.passwordEditTextLayout.error = null
-                }
-            }
-
-            override fun afterTextChanged(s: Editable?) {
-
-            }
-        })
-    }
 
     private fun showLoading(isLoading: Boolean) {
         binding.progressBar.visibility = if (isLoading) View.VISIBLE else View.GONE

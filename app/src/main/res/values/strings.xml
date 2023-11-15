@@ -28,6 +28,7 @@
     <string name="empty_image_warning">Silakan masukkan berkas gambar terlebih dahulu.</string>
 
     <string name="email_warning_invalid">Email yang dimasukkan salah</string>
+    <string name="name_warning_empty">Tolong masukkan nama kamu</string>
     <string name="email_warning_empty">Tolong masukkan email kamu</string>
     <string name="password_warning_empty">Tolong masukkan password kamu</string>
     <string name="password_warning_length">Password tidak boleh kurang dari 8 karakter</string>

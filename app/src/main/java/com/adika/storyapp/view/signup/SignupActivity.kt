@@ -33,7 +33,6 @@ class SignupActivity : AppCompatActivity() {
 
         setupView()
         playAnimation()
-        checkEditText()
         signup()
     }
 
@@ -121,81 +120,6 @@ class SignupActivity : AppCompatActivity() {
         }.start()
     }
 
-    private fun checkEditText() {
-        binding.nameEditText. addTextChangedListener(object : TextWatcher {
-            override fun beforeTextChanged(s: CharSequence?, p1: Int, p2: Int, p3: Int) {
-
-            }
-
-            override fun onTextChanged(s: CharSequence?, p1: Int, p2: Int, p3: Int) {
-                val errorMessage = when {
-                    s.isNullOrEmpty() -> resources.getString(R.string.email_warning_empty)
-                    else -> null
-                }
-
-                if (errorMessage != null) {
-                    binding.nameEditTextLayout.error = errorMessage
-                } else {
-                    binding.nameEditTextLayout.error = null
-                }
-            }
-
-            override fun afterTextChanged(s: Editable?) {
-
-            }
-        })
-
-        binding.emailEditText. addTextChangedListener(object : TextWatcher {
-            override fun beforeTextChanged(s: CharSequence?, p1: Int, p2: Int, p3: Int) {
-
-            }
-
-            override fun onTextChanged(s: CharSequence?, p1: Int, p2: Int, p3: Int) {
-                val errorMessage = when {
-                    s.isNullOrEmpty() -> resources.getString(R.string.email_warning_empty)
-                    !Patterns.EMAIL_ADDRESS.matcher(s)
-                        .matches() -> resources.getString(R.string.email_warning_invalid)
-
-                    else -> null
-                }
-
-                if (errorMessage != null) {
-                    binding.emailEditTextLayout.error = errorMessage
-                } else {
-                    binding.emailEditTextLayout.error = null
-                }
-            }
-
-            override fun afterTextChanged(s: Editable?) {
-
-            }
-        })
-
-        binding.passwordEditText. addTextChangedListener(object : TextWatcher {
-            override fun beforeTextChanged(s: CharSequence?, p1: Int, p2: Int, p3: Int) {
-
-            }
-
-            override fun onTextChanged(s: CharSequence?, p1: Int, p2: Int, p3: Int) {
-                val errorMessage = when {
-                    s.isNullOrEmpty() -> resources.getString(R.string.password_warning_empty)
-                    s.length < 8 -> resources.getString(R.string.password_warning_length)
-                    !isValidPassword(s.toString()) ->  resources.getString(R.string.password_warning_unique)
-                    else -> null
-                }
-
-                if (errorMessage != null) {
-                    binding.passwordEditTextLayout.error = errorMessage
-                } else {
-                    binding.passwordEditTextLayout.error = null
-                }
-            }
-
-            override fun afterTextChanged(s: Editable?) {
-
-            }
-        })
-    }
 
     private fun isValidPassword(password: String): Boolean {
         val upperCase = password.any { it.isUpperCase() }

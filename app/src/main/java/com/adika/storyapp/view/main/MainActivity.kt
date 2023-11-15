@@ -2,11 +2,14 @@ package com.adika.storyapp.view.main
 
 import android.content.Intent
 import android.os.Bundle
+import android.os.Handler
 import android.view.Menu
 import android.view.MenuItem
 import android.view.View
 import androidx.activity.viewModels
 import androidx.appcompat.app.AppCompatActivity
+import androidx.lifecycle.DefaultLifecycleObserver
+import androidx.lifecycle.LifecycleOwner
 import androidx.lifecycle.lifecycleScope
 import androidx.recyclerview.widget.DividerItemDecoration
 import androidx.recyclerview.widget.LinearLayoutManager
@@ -27,6 +30,15 @@ class MainActivity : AppCompatActivity() {
     private lateinit var binding: ActivityMainBinding
     private lateinit var storyAdapter: StoryAdapter
 
+    private val handler = Handler()
+    private val refreshRunnable = object : Runnable {
+        override fun run() {
+            viewModel.getStory() // Panggil API di sini untuk mendapatkan data terbaru
+
+            // Atur delay untuk auto-refresh sesuai kebutuhan
+            handler.postDelayed(this, 10000) // Contoh: refresh setiap 60 detik
+        }
+    }
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         binding = ActivityMainBinding.inflate(layoutInflater)
@@ -39,7 +51,6 @@ class MainActivity : AppCompatActivity() {
 
         storyAdapter = StoryAdapter(emptyList())
         showRecyclerList()
-        playAnimation()
 
         viewModel.listStory.observe(this) { listStory ->
             storyAdapter.updateData(listStory)
@@ -49,24 +60,25 @@ class MainActivity : AppCompatActivity() {
             showLoading(loading)
         }
 
-        viewModel.getStory()
-    }
+        // Mulai auto-refresh ketika aktivitas dibuat
+        handler.post(refreshRunnable)
 
-    private fun playAnimation() {
-//        ObjectAnimator.ofFloat(binding.imageView, View.TRANSLATION_X, -30f, 30f).apply {
-//            duration = 6000
-//            repeatCount = ObjectAnimator.INFINITE
-//            repeatMode = ObjectAnimator.REVERSE
-//        }.start()
-//
-//        val name = ObjectAnimator.ofFloat(binding.nameTextView, View.ALPHA, 1f).setDuration(400)
-//        val message = ObjectAnimator.ofFloat(binding.messageTextView, View.ALPHA, 1f).setDuration(400)
-//        val logout = ObjectAnimator.ofFloat(binding.logoutButton, View.ALPHA, 1f).setDuration(400)
-//
-//        AnimatorSet().apply {
-//            playSequentially(name, message, logout)
-//            startDelay = 100
-//        }.start()
+        // Tetapkan listener onStop untuk menghentikan auto-refresh saat aplikasi tidak aktif
+        lifecycle.addObserver(object : DefaultLifecycleObserver {
+            override fun onStop(owner: LifecycleOwner) {
+                handler.removeCallbacks(refreshRunnable)
+            }
+        })
+
+        // Mulai auto-refresh kembali saat aplikasi aktif kembali
+        lifecycle.addObserver(object : DefaultLifecycleObserver {
+            override fun onStart(owner: LifecycleOwner) {
+                handler.post(refreshRunnable)
+            }
+        })
+
+
+        viewModel.getStory()
     }
 
     private fun showRecyclerList() {
@@ -101,4 +113,11 @@ class MainActivity : AppCompatActivity() {
     private fun showLoading(isLoading: Boolean) {
         binding.progressBar.visibility = if (isLoading) View.VISIBLE else View.GONE
     }
+
+    override fun onDestroy() {
+        super.onDestroy()
+        // Hentikan auto-refresh saat aplikasi dihancurkan
+        handler.removeCallbacks(refreshRunnable)
+    }
+
 }

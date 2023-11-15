@@ -62,9 +62,6 @@ class AddStoryActivity : AppCompatActivity() {
         binding.cameraXButton.setOnClickListener { startCameraX() }
         binding.uploadButton.setOnClickListener {
             uploadImage()
-            val intent = Intent(this, MainActivity::class.java)
-            intent.flags = Intent.FLAG_ACTIVITY_CLEAR_TASK or Intent.FLAG_ACTIVITY_NEW_TASK
-            startActivity(intent)
         }
     }
 
@@ -132,6 +129,9 @@ class AddStoryActivity : AppCompatActivity() {
         viewModel.status.observe(this) { isSucess ->
             if (isSucess) {
                 Toast.makeText(this, "Story berhasil diunggah", Toast.LENGTH_SHORT).show()
+                val intent = Intent(this, MainActivity::class.java)
+                intent.flags = Intent.FLAG_ACTIVITY_CLEAR_TASK or Intent.FLAG_ACTIVITY_NEW_TASK
+                startActivity(intent)
             } else {
                 viewModel.error.observe(this) { errorMessage ->
                     if (errorMessage != null) {
