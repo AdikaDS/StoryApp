@@ -22,9 +22,6 @@ class DetailStoryActivity : AppCompatActivity() {
         setContentView(binding.root)
 
         getDetailStory()
-        viewModel.loading.observe(this) { loading ->
-            showLoading(loading)
-        }
 
         transitionActivity()
 
@@ -50,6 +47,10 @@ class DetailStoryActivity : AppCompatActivity() {
                         .load(story.photoUrl)
                         .into(imageDetailStory)
                 }
+            }
+
+            viewModel.loading.observe(this) { loading ->
+                showLoading(loading)
             }
         }
 

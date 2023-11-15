@@ -15,6 +15,7 @@ import com.adika.storyapp.data.local.pref.UserPreference
 import com.adika.storyapp.data.local.pref.dataStore
 import com.adika.storyapp.databinding.ActivityMainBinding
 import com.adika.storyapp.view.StoryModelFactory
+import com.adika.storyapp.view.addstory.AddStoryActivity
 import com.adika.storyapp.view.recyclerview.StoryAdapter
 import com.adika.storyapp.view.welcome.WelcomeActivity
 import kotlinx.coroutines.launch
@@ -32,6 +33,10 @@ class MainActivity : AppCompatActivity() {
         setContentView(binding.root)
 
         setSupportActionBar(binding.toolbar)
+        binding.fab.setOnClickListener {
+            startActivity(Intent(this, AddStoryActivity::class.java))
+        }
+
         storyAdapter = StoryAdapter(emptyList())
         showRecyclerList()
         playAnimation()

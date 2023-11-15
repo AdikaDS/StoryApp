@@ -20,9 +20,17 @@
     <string name="created_on">Dibuat Pada :\u00A0</string>
     <string name="date">Tanggal</string>
 
+    <string name="camera">Kamera</string>
+    <string name="cameraX">Kamera X</string>
+    <string name="gallery">Galeri</string>
+    <string name="upload">Unggah</string>
+    <string name="description_story">Deskripsi Story</string>
+    <string name="empty_image_warning">Silakan masukkan berkas gambar terlebih dahulu.</string>
+
     <string name="email_warning_invalid">Email yang dimasukkan salah</string>
     <string name="email_warning_empty">Tolong masukkan email kamu</string>
     <string name="password_warning_empty">Tolong masukkan password kamu</string>
     <string name="password_warning_length">Password tidak boleh kurang dari 8 karakter</string>
     <string name="password_warning_unique">Password harus memiliki huruf besar, karakter khusus, dan angka</string>
+    <string name="fab">Tombol Tambah</string>
 </resources>

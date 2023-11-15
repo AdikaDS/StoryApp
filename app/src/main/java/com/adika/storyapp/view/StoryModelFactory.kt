@@ -5,6 +5,7 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.ViewModelProvider
 import com.adika.storyapp.data.local.repo.StoryRepository
 import com.adika.storyapp.di.Injection
+import com.adika.storyapp.view.addstory.AddStoryViewModel
 import com.adika.storyapp.view.detail.DetailViewModel
 import com.adika.storyapp.view.main.MainViewModel
 
@@ -20,6 +21,10 @@ class StoryModelFactory(private val repository: StoryRepository) :
 
             modelClass.isAssignableFrom(DetailViewModel::class.java) -> {
                 DetailViewModel(repository) as T
+            }
+
+            modelClass.isAssignableFrom(AddStoryViewModel::class.java) -> {
+                AddStoryViewModel(repository) as T
             }
 
             else -> throw IllegalArgumentException("Unknown ViewModel class: " + modelClass.name)
