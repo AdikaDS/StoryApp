@@ -33,12 +33,12 @@ class MainActivity : AppCompatActivity() {
     private val handler = Handler()
     private val refreshRunnable = object : Runnable {
         override fun run() {
-            viewModel.getStory() // Panggil API di sini untuk mendapatkan data terbaru
+            viewModel.getStory()
 
-            // Atur delay untuk auto-refresh sesuai kebutuhan
-            handler.postDelayed(this, 10000) // Contoh: refresh setiap 60 detik
+            handler.postDelayed(this, 10000)
         }
     }
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         binding = ActivityMainBinding.inflate(layoutInflater)
@@ -60,17 +60,14 @@ class MainActivity : AppCompatActivity() {
             showLoading(loading)
         }
 
-        // Mulai auto-refresh ketika aktivitas dibuat
         handler.post(refreshRunnable)
 
-        // Tetapkan listener onStop untuk menghentikan auto-refresh saat aplikasi tidak aktif
         lifecycle.addObserver(object : DefaultLifecycleObserver {
             override fun onStop(owner: LifecycleOwner) {
                 handler.removeCallbacks(refreshRunnable)
             }
         })
 
-        // Mulai auto-refresh kembali saat aplikasi aktif kembali
         lifecycle.addObserver(object : DefaultLifecycleObserver {
             override fun onStart(owner: LifecycleOwner) {
                 handler.post(refreshRunnable)
