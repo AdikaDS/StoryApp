@@ -19,6 +19,7 @@ import com.adika.storyapp.data.local.pref.dataStore
 import com.adika.storyapp.databinding.ActivityMainBinding
 import com.adika.storyapp.view.StoryModelFactory
 import com.adika.storyapp.view.addstory.AddStoryActivity
+import com.adika.storyapp.view.maps.MapsActivity
 import com.adika.storyapp.view.recyclerview.StoryAdapter
 import com.adika.storyapp.view.welcome.WelcomeActivity
 import kotlinx.coroutines.launch
@@ -100,6 +101,12 @@ class MainActivity : AppCompatActivity() {
                     startActivity(Intent(this@MainActivity, WelcomeActivity::class.java))
                     finish()
                 }
+                true
+            }
+
+            R.id.maps -> {
+                startActivity(Intent(this@MainActivity, MapsActivity::class.java))
+                finish()
                 true
             }
 
