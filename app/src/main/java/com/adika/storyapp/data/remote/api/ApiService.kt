@@ -8,13 +8,7 @@ import com.adika.storyapp.data.remote.response.StoryDetailResponse
 import okhttp3.MultipartBody
 import okhttp3.RequestBody
 import retrofit2.Call
-import retrofit2.http.Field
-import retrofit2.http.FormUrlEncoded
-import retrofit2.http.GET
-import retrofit2.http.Multipart
-import retrofit2.http.POST
-import retrofit2.http.Part
-import retrofit2.http.Path
+import retrofit2.http.*
 
 interface ApiService {
 
@@ -35,6 +29,11 @@ interface ApiService {
 
     @GET("stories")
     suspend fun getStories(): GetAllStoryResponse
+
+    @GET("stories")
+    suspend fun getStoriesWithLocation(
+        @Query("location") location : Int = 1,
+    ): GetAllStoryResponse
 
     @GET("stories/{id}")
     suspend fun getDetailStory(

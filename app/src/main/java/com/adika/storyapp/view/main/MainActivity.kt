@@ -106,7 +106,6 @@ class MainActivity : AppCompatActivity() {
 
             R.id.maps -> {
                 startActivity(Intent(this@MainActivity, MapsActivity::class.java))
-                finish()
                 true
             }
 
