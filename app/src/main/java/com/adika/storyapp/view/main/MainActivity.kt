@@ -11,16 +11,16 @@ import androidx.appcompat.app.AppCompatActivity
 import androidx.lifecycle.DefaultLifecycleObserver
 import androidx.lifecycle.LifecycleOwner
 import androidx.lifecycle.lifecycleScope
-import androidx.recyclerview.widget.DividerItemDecoration
 import androidx.recyclerview.widget.LinearLayoutManager
 import com.adika.storyapp.R
 import com.adika.storyapp.data.local.pref.UserPreference
 import com.adika.storyapp.data.local.pref.dataStore
 import com.adika.storyapp.databinding.ActivityMainBinding
 import com.adika.storyapp.view.StoryModelFactory
+import com.adika.storyapp.view.adapter.LoadingStateAdapter
 import com.adika.storyapp.view.addstory.AddStoryActivity
 import com.adika.storyapp.view.maps.MapsActivity
-import com.adika.storyapp.view.recyclerview.StoryAdapter
+import com.adika.storyapp.view.adapter.StoryAdapter
 import com.adika.storyapp.view.welcome.WelcomeActivity
 import kotlinx.coroutines.launch
 
@@ -34,7 +34,8 @@ class MainActivity : AppCompatActivity() {
     private val handler = Handler()
     private val refreshRunnable = object : Runnable {
         override fun run() {
-            viewModel.getStory()
+//            viewModel.getStory()
+            getStory()
 
             handler.postDelayed(this, 10000)
         }
@@ -50,12 +51,13 @@ class MainActivity : AppCompatActivity() {
             startActivity(Intent(this, AddStoryActivity::class.java))
         }
 
-        storyAdapter = StoryAdapter(emptyList())
+        storyAdapter = StoryAdapter()
         showRecyclerList()
+        getStory()
 
-        viewModel.listStory.observe(this) { listStory ->
-            storyAdapter.updateData(listStory)
-        }
+//        viewModel.listStory.observe(this) { listStory ->
+//            storyAdapter.updateData(listStory)
+//        }
 
         viewModel.loading.observe(this) { loading ->
             showLoading(loading)
@@ -74,17 +76,23 @@ class MainActivity : AppCompatActivity() {
                 handler.post(refreshRunnable)
             }
         })
+    }
 
-
-        viewModel.getStory()
+    private fun getStory() {
+        val adapter = StoryAdapter()
+        binding.rvStory.adapter = adapter.withLoadStateFooter(
+            footer = LoadingStateAdapter{
+                adapter.retry()
+            }
+        )
+        viewModel.story.observe(this) {
+            adapter.submitData(lifecycle, it)
+        }
     }
 
     private fun showRecyclerList() {
         val layoutManager = LinearLayoutManager(this)
         binding.rvStory.layoutManager = layoutManager
-        binding.rvStory.adapter = storyAdapter
-        val itemDecoration = DividerItemDecoration(this, layoutManager.orientation)
-        binding.rvStory.addItemDecoration(itemDecoration)
     }
 
     override fun onCreateOptionsMenu(menu: Menu?): Boolean {

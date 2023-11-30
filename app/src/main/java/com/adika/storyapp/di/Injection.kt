@@ -7,6 +7,7 @@ import com.adika.storyapp.data.local.pref.dataStore
 import com.adika.storyapp.data.local.repo.MapsRepository
 import com.adika.storyapp.data.local.repo.StoryRepository
 import com.adika.storyapp.data.remote.api.ApiConfig
+import com.adika.storyapp.database.StoryDatabase
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.runBlocking
 
@@ -22,7 +23,8 @@ object Injection {
         val pref = UserPreference.getInstance(context.dataStore)
         val user = runBlocking { pref.getSession().first() }
         val apiService = ApiConfig.getApiService(user.token)
-        return StoryRepository.getInstance(pref, apiService)
+        val database = StoryDatabase.getDatabase(context)
+        return StoryRepository.getInstance(database, pref, apiService)
     }
 
     fun provideMapsRepository(context: Context) : MapsRepository {

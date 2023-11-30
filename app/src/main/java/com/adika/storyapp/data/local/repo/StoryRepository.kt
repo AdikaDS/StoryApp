@@ -1,11 +1,20 @@
 package com.adika.storyapp.data.local.repo
 
 import android.util.Log
+import androidx.lifecycle.LiveData
+import androidx.paging.ExperimentalPagingApi
+import androidx.paging.Pager
+import androidx.paging.PagingConfig
+import androidx.paging.PagingData
+import androidx.paging.liveData
 import com.adika.storyapp.data.local.pref.UserPreference
+import com.adika.storyapp.data.paging.StoryPagingSource
+import com.adika.storyapp.data.paging.StoryRemoteMediator
 import com.adika.storyapp.data.remote.api.ApiService
 import com.adika.storyapp.data.remote.response.AddStoryResponse
-import com.adika.storyapp.data.remote.response.GetAllStoryResponse
+import com.adika.storyapp.data.remote.response.ListStoryItem
 import com.adika.storyapp.data.remote.response.StoryDetailResponse
+import com.adika.storyapp.database.StoryDatabase
 import com.google.gson.Gson
 import kotlinx.coroutines.GlobalScope
 import kotlinx.coroutines.launch
@@ -17,10 +26,26 @@ import retrofit2.HttpException
 import java.io.File
 
 class StoryRepository private constructor(
-    private val userPreference: UserPreference, private val apiService: ApiService
+    private val storyDatabase: StoryDatabase,
+    private val userPreference: UserPreference,
+    private val apiService: ApiService
 ) {
-    suspend fun getStory(): GetAllStoryResponse {
-        return apiService.getStories()
+//    suspend fun getStory(): GetAllStoryResponse {
+//        return apiService.getStories()
+//    }
+
+    fun getStory(): LiveData<PagingData<ListStoryItem>> {
+        @OptIn(ExperimentalPagingApi::class)
+        return Pager(
+            config = PagingConfig(
+                pageSize = 5
+            ),
+            remoteMediator = StoryRemoteMediator(storyDatabase, apiService),
+            pagingSourceFactory = {
+                StoryPagingSource(apiService)
+                storyDatabase.storyDao().getAllStory()
+            }
+        ).liveData
     }
 
     suspend fun getDetailStory(id: String): StoryDetailResponse {
@@ -59,7 +84,9 @@ class StoryRepository private constructor(
         Log.d("TAG", "uploadStory: $description")
         GlobalScope.launch {
             try {
-                val successResponse = apiService.uploadImageWithLocaation(multipartBody, requestBody, lat, lon).execute()
+                val successResponse =
+                    apiService.uploadImageWithLocaation(multipartBody, requestBody, lat, lon)
+                        .execute()
             } catch (e: HttpException) {
                 val errorBody = e.response()?.errorBody()?.string()
                 val errorResponse = Gson().fromJson(errorBody, AddStoryResponse::class.java)
@@ -74,10 +101,12 @@ class StoryRepository private constructor(
         @Volatile
         private var instance: StoryRepository? = null
         fun getInstance(
-            userPreference: UserPreference, apiService: ApiService
+            storyDatabase: StoryDatabase,
+            userPreference: UserPreference,
+            apiService: ApiService
         ): StoryRepository =
             instance ?: synchronized(this) {
-                instance ?: StoryRepository(userPreference, apiService)
+                instance ?: StoryRepository(storyDatabase, userPreference, apiService)
             }.also { instance = it }
     }
 }

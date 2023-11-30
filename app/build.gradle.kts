@@ -45,6 +45,7 @@ android {
     }
     kotlinOptions {
         jvmTarget = "1.8"
+        freeCompilerArgs = listOf("-Xopt-in=kotlin.RequiresOptIn")
     }
 }
 
@@ -87,4 +88,11 @@ dependencies {
     implementation("androidx.camera:camera-camera2:$cameraxVersion")
     implementation("androidx.camera:camera-lifecycle:$cameraxVersion")
     implementation("androidx.camera:camera-view:$cameraxVersion")
+
+    // Library Paging3
+    implementation("androidx.paging:paging-runtime-ktx:3.2.1")
+
+    // Library Room-Paging
+    implementation("androidx.room:room-paging:2.6.0")
+    implementation("androidx.room:room-ktx:2.6.0")
 }
