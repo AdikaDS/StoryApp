@@ -48,6 +48,28 @@ class StoryRepository private constructor(
 
     }
 
+    fun uploadStoryWithLocation(imageFile: File, description: String, lat: Double, lon: Double) {
+        val requestBody = description.toRequestBody("text/plain".toMediaType())
+        val requestImageFile = imageFile.asRequestBody("image/jpeg".toMediaType())
+        val multipartBody = MultipartBody.Part.createFormData(
+            "photo",
+            imageFile.name,
+            requestImageFile
+        )
+        Log.d("TAG", "uploadStory: $description")
+        GlobalScope.launch {
+            try {
+                val successResponse = apiService.uploadImageWithLocaation(multipartBody, requestBody, lat, lon).execute()
+            } catch (e: HttpException) {
+                val errorBody = e.response()?.errorBody()?.string()
+                val errorResponse = Gson().fromJson(errorBody, AddStoryResponse::class.java)
+                Log.d("UploadError", "Error uploading story: ${errorResponse?.message}")
+            }
+        }
+
+    }
+
+
     companion object {
         @Volatile
         private var instance: StoryRepository? = null

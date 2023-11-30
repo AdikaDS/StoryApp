@@ -46,4 +46,13 @@ interface ApiService {
         @Part file: MultipartBody.Part,
         @Part("description") description: RequestBody
     ): Call<AddStoryResponse>
+
+    @Multipart
+    @POST("stories")
+    fun uploadImageWithLocaation(
+        @Part file: MultipartBody.Part,
+        @Part("description") description: RequestBody,
+        @Part("lat") lat: Double,
+        @Part("lon") lon: Double
+    ): Call<AddStoryResponse>
 }

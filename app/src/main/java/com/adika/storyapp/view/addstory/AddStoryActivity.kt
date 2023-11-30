@@ -1,8 +1,10 @@
 package com.adika.storyapp.view.addstory
 
 import android.Manifest
+import android.annotation.SuppressLint
 import android.content.Intent
 import android.content.pm.PackageManager
+import android.location.Location
 import android.net.Uri
 import android.os.Bundle
 import android.util.Log
@@ -22,6 +24,9 @@ import com.adika.storyapp.utils.uriToFile
 import com.adika.storyapp.view.StoryModelFactory
 import com.adika.storyapp.view.addstory.CameraActivity.Companion.CAMERAX_RESULT
 import com.adika.storyapp.view.main.MainActivity
+import com.google.android.gms.location.FusedLocationProviderClient
+import com.google.android.gms.location.LocationServices
+import pub.devrel.easypermissions.EasyPermissions
 
 class AddStoryActivity : AppCompatActivity() {
     val viewModel by viewModels<AddStoryViewModel> {
@@ -30,31 +35,17 @@ class AddStoryActivity : AppCompatActivity() {
     private lateinit var binding: ActivityAddStoryBinding
 
     private var currentImageUri: Uri? = null
-
-    private val requestPermissionLauncher =
-        registerForActivityResult(
-            ActivityResultContracts.RequestPermission()
-        ) { isGranted: Boolean ->
-            if (isGranted) {
-                Toast.makeText(this, "Permission request granted", Toast.LENGTH_LONG).show()
-            } else {
-                Toast.makeText(this, "Permission request denied", Toast.LENGTH_LONG).show()
-            }
-        }
-
-    private fun allPermissionsGranted() =
-        ContextCompat.checkSelfPermission(
-            this,
-            REQUIRED_PERMISSION
-        ) == PackageManager.PERMISSION_GRANTED
+    private lateinit var fusedLocationClient: FusedLocationProviderClient
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         binding = ActivityAddStoryBinding.inflate(layoutInflater)
         setContentView(binding.root)
 
-        if (!allPermissionsGranted()) {
-            requestPermissionLauncher.launch(REQUIRED_PERMISSION)
+        fusedLocationClient = LocationServices.getFusedLocationProviderClient(this)
+
+        if (!checkPermissionCameraGranted() || !checkPermissionLocationGranted()) {
+            requestPermissionsIfNeeded()
         }
 
         binding.galleryButton.setOnClickListener { startGallery() }
@@ -63,6 +54,15 @@ class AddStoryActivity : AppCompatActivity() {
         binding.uploadButton.setOnClickListener {
             uploadImage()
         }
+    }
+
+    override fun onRequestPermissionsResult(
+        requestCode: Int,
+        permissions: Array<out String>,
+        grantResults: IntArray
+    ) {
+        super.onRequestPermissionsResult(requestCode, permissions, grantResults)
+        EasyPermissions.onRequestPermissionsResult(requestCode, permissions, grantResults, this)
     }
 
     private fun startGallery() {
@@ -114,13 +114,31 @@ class AddStoryActivity : AppCompatActivity() {
         }
     }
 
+
+    @SuppressLint("MissingPermission")
     private fun uploadImage() {
         currentImageUri?.let { uri ->
             val imageFile = uriToFile(uri, this).reduceFileImage()
             Log.d("Image File", "showImage: ${imageFile.path}")
             val description = binding.etDescription.text.toString()
 
-            viewModel.uploadImage(imageFile, description)
+            if (binding.checkBoxIncludeLocation.isChecked) {
+                if (checkPermissionLocationGranted() && checkPermissionCameraGranted()) {
+                    fusedLocationClient.lastLocation.addOnSuccessListener { location: Location? ->
+                        if (location != null){
+                            val lat = location.latitude
+                            val lon = location.longitude
+                            viewModel.uploadImageWithLocation(imageFile, description, lat, lon)
+                        }
+                    }
+                } else {
+                    requestPermissionsIfNeeded()
+                }
+            } else {
+                // Lokasi tidak diminta oleh pengguna, lakukan tindakan lainnya
+                viewModel.uploadImage(imageFile, description)
+            }
+
             viewModel.loading.observe(this) {
                 showLoading(it)
             }
@@ -128,20 +146,52 @@ class AddStoryActivity : AppCompatActivity() {
 
         viewModel.status.observe(this) { isSucess ->
             if (isSucess) {
-                Toast.makeText(this, "Story berhasil diunggah", Toast.LENGTH_SHORT).show()
+                showToast("Story berhasil diunggah")
                 val intent = Intent(this, MainActivity::class.java)
                 intent.flags = Intent.FLAG_ACTIVITY_CLEAR_TASK or Intent.FLAG_ACTIVITY_NEW_TASK
                 startActivity(intent)
             } else {
                 viewModel.error.observe(this) { errorMessage ->
                     if (errorMessage != null) {
-                        Toast.makeText(this, "$errorMessage", Toast.LENGTH_SHORT).show()
+                        showToast("$errorMessage")
                     }
                 }
             }
         }
     }
 
+    private fun checkPermissionCameraGranted() =
+        ContextCompat.checkSelfPermission(
+            this,
+            REQUIRED_PERMISSION_CAMERA
+        ) == PackageManager.PERMISSION_GRANTED
+
+    private fun checkPermissionLocationGranted() =
+        ContextCompat.checkSelfPermission(
+            this,
+            REQUIRED_PERMISSION_LOCATION
+        ) == PackageManager.PERMISSION_GRANTED
+
+    private fun requestPermissionsIfNeeded() {
+        val permissions = mutableListOf<String>()
+
+        if (!checkPermissionCameraGranted()) {
+            permissions.add(REQUIRED_PERMISSION_CAMERA)
+        }
+
+        if (!checkPermissionLocationGranted()) {
+            permissions.add(REQUIRED_PERMISSION_LOCATION)
+        }
+
+        if (permissions.isNotEmpty()) {
+            EasyPermissions.requestPermissions(
+                this,
+                "Aplikasi membutuhkan izin",
+                PERMISSION_REQUEST_CODE,
+                *permissions.toTypedArray()
+            )
+        }
+    }
 
     private fun showLoading(isLoading: Boolean) {
         binding.progressIndicator.visibility = if (isLoading) View.VISIBLE else View.GONE
@@ -152,6 +202,8 @@ class AddStoryActivity : AppCompatActivity() {
     }
 
     companion object {
-        private const val REQUIRED_PERMISSION = Manifest.permission.CAMERA
+        private const val REQUIRED_PERMISSION_CAMERA = Manifest.permission.CAMERA
+        private const val REQUIRED_PERMISSION_LOCATION = Manifest.permission.ACCESS_FINE_LOCATION
+        private const val PERMISSION_REQUEST_CODE = 123
     }
 }

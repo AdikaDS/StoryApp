@@ -42,4 +42,27 @@ class AddStoryViewModel(private val repository: StoryRepository) : ViewModel() {
         }
     }
 
+    fun uploadImageWithLocation(file: File, description: String, lat: Double, lon: Double) {
+        viewModelScope.launch {
+            try {
+                _loading.value = true
+                val response = repository.uploadStoryWithLocation(file, description, lat, lon)
+                status.postValue(true)
+                Log.d("AddStory", "$response")
+            } catch (e: HttpException) {
+                _loading.value = false
+                val jsonInString = e.response()?.errorBody()?.string()
+                val errorBody = Gson().fromJson(jsonInString, AddStoryResponse::class.java)
+                error.postValue(errorBody.message)
+                status.postValue(false)
+                Log.d("AddStory", "$e")
+            } catch (e: Exception) {
+                _loading.value = true
+                error.postValue("Terjadi kesalahan saat membuat data")
+                status.postValue(false)
+                Log.d("AddStory", "$e")
+            }
+        }
+    }
+
 }
