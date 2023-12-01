@@ -1,5 +1,7 @@
 package com.adika.storyapp.view.maps
 
+import android.content.Intent
+import android.content.IntentSender
 import android.content.pm.PackageManager
 import android.content.res.Resources
 import android.os.Bundle
@@ -15,6 +17,10 @@ import androidx.core.content.ContextCompat
 import com.adika.storyapp.R
 import com.adika.storyapp.databinding.ActivityMapsBinding
 import com.adika.storyapp.view.MapsModelFactory
+import com.google.android.gms.common.api.ResolvableApiException
+import com.google.android.gms.location.LocationRequest
+import com.google.android.gms.location.LocationServices
+import com.google.android.gms.location.LocationSettingsRequest
 import com.google.android.gms.maps.CameraUpdateFactory
 import com.google.android.gms.maps.GoogleMap
 import com.google.android.gms.maps.OnMapReadyCallback
@@ -66,15 +72,33 @@ class MapsActivity : AppCompatActivity(), OnMapReadyCallback {
     override fun onMapReady(googleMap: GoogleMap) {
         mMap = googleMap
 
-        mMap.uiSettings.isZoomControlsEnabled = true
-        mMap.uiSettings.isIndoorLevelPickerEnabled = true
-        mMap.uiSettings.isCompassEnabled = true
-        mMap.uiSettings.isMapToolbarEnabled = true
+        with(mMap.uiSettings) {
+            isZoomControlsEnabled = true
+            isIndoorLevelPickerEnabled = true
+            isCompassEnabled = true
+            isMapToolbarEnabled = true
+        }
 
         getLocations()
         getMyLocation()
         setMapStyle()
+    }
 
+    override fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent?) {
+        super.onActivityResult(requestCode, resultCode, data)
+        if (requestCode == REQUEST_CHECK_SETTINGS) {
+            if (resultCode == RESULT_OK) {
+                // Pengguna mengaktifkan lokasi, aktifkan lokasi
+                getMyLocation()
+            } else {
+                // Pengguna tidak mengaktifkan lokasi
+                Toast.makeText(
+                    this,
+                    "Aktifkan lokasi untuk menggunakan fitur ini",
+                    Toast.LENGTH_SHORT
+                ).show()
+            }
+        }
     }
 
 
@@ -84,7 +108,29 @@ class MapsActivity : AppCompatActivity(), OnMapReadyCallback {
                 android.Manifest.permission.ACCESS_FINE_LOCATION
             ) == PackageManager.PERMISSION_GRANTED
         ) {
-            mMap.isMyLocationEnabled = true
+            // Membuat permintaan pengaturan lokasi
+            val locationSettingsRequest = LocationSettingsRequest.Builder()
+                .addLocationRequest(LocationRequest.create())
+                .build()
+
+            val settingsClient = LocationServices.getSettingsClient(this)
+            settingsClient.checkLocationSettings(locationSettingsRequest)
+                .addOnSuccessListener {
+                    // Lokasi diaktifkan
+                    mMap.isMyLocationEnabled = true
+                }
+                .addOnFailureListener { exception ->
+                    // Lokasi tidak diaktifkan, arahkan pengguna untuk mengaktifkan
+                    if (exception is ResolvableApiException) {
+                        try {
+                            // Tampilkan dialog untuk meminta pengguna mengaktifkan lokasi
+                            exception.startResolutionForResult(this, REQUEST_CHECK_SETTINGS)
+                        } catch (sendEx: IntentSender.SendIntentException) {
+                            // Gagal meminta pengguna mengaktifkan lokasi
+                            sendEx.printStackTrace()
+                        }
+                    }
+                }
         } else {
             requestPermissionLauncher.launch(android.Manifest.permission.ACCESS_FINE_LOCATION)
         }
@@ -104,22 +150,29 @@ class MapsActivity : AppCompatActivity(), OnMapReadyCallback {
 
     private fun getLocations() {
         viewModel.maps.observe(this) { maps ->
-            maps.listStory.forEach { location ->
-                val latLng = LatLng(location.lat, location.lon)
-                mMap.addMarker(MarkerOptions().position(latLng).title(location.name).snippet(location.description))
-                boundsBuilder.include(latLng)
+            maps.listStory?.let { listStory ->
+                if (listStory.isNotEmpty()) {
+                    listStory.forEach { location ->
+                        val latLng = LatLng(location.lat, location.lon)
+                        mMap.addMarker(
+                            MarkerOptions().position(latLng).title(location.name)
+                                .snippet(location.description)
+                        )
+                        boundsBuilder.include(latLng)
+                    }
+
+                    val bounds: LatLngBounds = boundsBuilder.build()
+                    mMap.animateCamera(
+                        CameraUpdateFactory.newLatLngBounds(
+                            bounds,
+                            resources.displayMetrics.widthPixels,
+                            resources.displayMetrics.heightPixels,
+                            300
+                        )
+                    )
+                }
             }
         }
-
-        val bounds: LatLngBounds = boundsBuilder.build()
-        mMap.animateCamera(
-            CameraUpdateFactory.newLatLngBounds(
-                bounds,
-                resources.displayMetrics.widthPixels,
-                resources.displayMetrics.heightPixels,
-                300
-            )
-        )
     }
 
     private fun showLoading(isLoading: Boolean) {
@@ -161,5 +214,6 @@ class MapsActivity : AppCompatActivity(), OnMapReadyCallback {
 
     companion object {
         private const val TAG = "MapsActivity"
+        private const val REQUEST_CHECK_SETTINGS = 1
     }
 }

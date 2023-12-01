@@ -2,14 +2,12 @@ package com.adika.storyapp.view.main
 
 import android.content.Intent
 import android.os.Bundle
-import android.os.Handler
 import android.view.Menu
 import android.view.MenuItem
 import android.view.View
+import android.widget.Toast
 import androidx.activity.viewModels
 import androidx.appcompat.app.AppCompatActivity
-import androidx.lifecycle.DefaultLifecycleObserver
-import androidx.lifecycle.LifecycleOwner
 import androidx.lifecycle.lifecycleScope
 import androidx.recyclerview.widget.LinearLayoutManager
 import com.adika.storyapp.R
@@ -18,10 +16,13 @@ import com.adika.storyapp.data.local.pref.dataStore
 import com.adika.storyapp.databinding.ActivityMainBinding
 import com.adika.storyapp.view.StoryModelFactory
 import com.adika.storyapp.view.adapter.LoadingStateAdapter
+import com.adika.storyapp.view.adapter.StoryAdapter
 import com.adika.storyapp.view.addstory.AddStoryActivity
 import com.adika.storyapp.view.maps.MapsActivity
-import com.adika.storyapp.view.adapter.StoryAdapter
 import com.adika.storyapp.view.welcome.WelcomeActivity
+import kotlinx.coroutines.cancel
+import kotlinx.coroutines.delay
+import kotlinx.coroutines.isActive
 import kotlinx.coroutines.launch
 
 class MainActivity : AppCompatActivity() {
@@ -29,17 +30,6 @@ class MainActivity : AppCompatActivity() {
         StoryModelFactory.getInstance(this)
     }
     private lateinit var binding: ActivityMainBinding
-    private lateinit var storyAdapter: StoryAdapter
-
-    private val handler = Handler()
-    private val refreshRunnable = object : Runnable {
-        override fun run() {
-//            viewModel.getStory()
-            getStory()
-
-            handler.postDelayed(this, 10000)
-        }
-    }
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -48,40 +38,28 @@ class MainActivity : AppCompatActivity() {
 
         setSupportActionBar(binding.toolbar)
         binding.fab.setOnClickListener {
-            startActivity(Intent(this, AddStoryActivity::class.java))
+            startActivityForResult(Intent(this, AddStoryActivity::class.java), ADD_STORY_REQUEST_CODE)
         }
 
-        storyAdapter = StoryAdapter()
         showRecyclerList()
         getStory()
-
-//        viewModel.listStory.observe(this) { listStory ->
-//            storyAdapter.updateData(listStory)
-//        }
 
         viewModel.loading.observe(this) { loading ->
             showLoading(loading)
         }
 
-        handler.post(refreshRunnable)
-
-        lifecycle.addObserver(object : DefaultLifecycleObserver {
-            override fun onStop(owner: LifecycleOwner) {
-                handler.removeCallbacks(refreshRunnable)
+        lifecycleScope.launch {
+            while (isActive) {
+                delay(10000)
+                getStory()
             }
-        })
-
-        lifecycle.addObserver(object : DefaultLifecycleObserver {
-            override fun onStart(owner: LifecycleOwner) {
-                handler.post(refreshRunnable)
-            }
-        })
+        }
     }
 
     private fun getStory() {
         val adapter = StoryAdapter()
         binding.rvStory.adapter = adapter.withLoadStateFooter(
-            footer = LoadingStateAdapter{
+            footer = LoadingStateAdapter {
                 adapter.retry()
             }
         )
@@ -125,10 +103,27 @@ class MainActivity : AppCompatActivity() {
         binding.progressBar.visibility = if (isLoading) View.VISIBLE else View.GONE
     }
 
+    override fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent?) {
+        super.onActivityResult(requestCode, resultCode, data)
+        if (requestCode == ADD_STORY_REQUEST_CODE) {
+            if (resultCode == RESULT_OK) {
+                Toast.makeText(this, "Cerita berhasil ditambahkan", Toast.LENGTH_SHORT).show()
+            } else if (resultCode == RESULT_CANCELED) {
+                Toast.makeText(this, "Gagal menambahkan cerita", Toast.LENGTH_SHORT).show()
+            }
+        }
+    }
+
     override fun onDestroy() {
         super.onDestroy()
         // Hentikan auto-refresh saat aplikasi dihancurkan
-        handler.removeCallbacks(refreshRunnable)
+        lifecycleScope.launch {
+            cancel()
+        }
+    }
+
+    companion object {
+        private const val ADD_STORY_REQUEST_CODE = 123
     }
 
 }
