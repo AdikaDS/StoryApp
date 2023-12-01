@@ -10,6 +10,11 @@ android {
     namespace = "com.adika.storyapp"
     compileSdk = 34
 
+    testOptions {
+        unitTests {
+            isReturnDefaultValues = true
+        }
+    }
 
     defaultConfig {
         applicationId = "com.adika.storyapp"
@@ -62,6 +67,7 @@ dependencies {
     androidTestImplementation("androidx.test.ext:junit:1.1.5")
     androidTestImplementation("androidx.test.espresso:espresso-core:3.5.1")
 
+
     // Library live data dan view model
     implementation("androidx.lifecycle:lifecycle-viewmodel-ktx:2.6.2")
     implementation("androidx.lifecycle:lifecycle-livedata-ktx:2.6.2")
@@ -95,4 +101,13 @@ dependencies {
     // Library Room-Paging
     implementation("androidx.room:room-paging:2.6.0")
     implementation("androidx.room:room-ktx:2.6.0")
+
+    // Library  testing LiveData dan Coroutines
+    testImplementation("androidx.arch.core:core-testing:2.2.0") // InstantTaskExecutorRule
+    testImplementation("org.jetbrains.kotlinx:kotlinx-coroutines-test:1.7.1") //TestDispatcher
+    testImplementation("org.mockito:mockito-core:5.3.1")
+    testImplementation("org.mockito:mockito-inline:4.4.0")
+
+    testImplementation ("org.robolectric:robolectric:4.5.1") // Ganti versi sesuai kebutuhan
+
 }
